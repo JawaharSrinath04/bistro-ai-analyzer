@@ -8,7 +8,7 @@ import { useData } from '@/contexts/DataContext';
 import { Order } from '@/types/order';
 
 const OrderManagement = () => {
-  const { orders, updateOrderStatus } = useData();
+  const { orders, updateOrderStatus, deleteOrder } = useData();
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
@@ -21,8 +21,10 @@ const OrderManagement = () => {
     }
   };
 
-  const formatOrderType = (type: string) => {
-    return type.charAt(0).toUpperCase() + type.slice(1).replace('-', ' ');
+  const handleDeleteOrder = (orderId: string) => {
+    if (window.confirm('Are you sure the bill has been paid and you want to remove this order?')) {
+      deleteOrder(orderId);
+    }
   };
 
   return (
@@ -35,11 +37,11 @@ const OrderManagement = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Order ID</TableHead>
-              <TableHead>Customer</TableHead>
+              <TableHead>Table</TableHead>
               <TableHead>Items</TableHead>
-              <TableHead>Type</TableHead>
               <TableHead>Total</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Taken By</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -50,8 +52,8 @@ const OrderManagement = () => {
                 <TableCell>
                   <div>
                     <p className="font-medium">{order.customerName}</p>
-                    {order.customerPhone && (
-                      <p className="text-sm text-slate-600">{order.customerPhone}</p>
+                    {order.tableNumber && (
+                      <p className="text-sm text-slate-600">Table {order.tableNumber}</p>
                     )}
                   </div>
                 </TableCell>
@@ -64,36 +66,38 @@ const OrderManagement = () => {
                     ))}
                   </div>
                 </TableCell>
-                <TableCell>
-                  <div>
-                    <p>{formatOrderType(order.orderType)}</p>
-                    {order.tableNumber && (
-                      <p className="text-sm text-slate-600">Table {order.tableNumber}</p>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="font-semibold">${order.totalAmount.toFixed(2)}</TableCell>
+                <TableCell className="font-semibold">₹{order.totalAmount.toFixed(2)}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                   </span>
                 </TableCell>
+                <TableCell className="text-sm text-slate-600">{order.takenBy}</TableCell>
                 <TableCell>
-                  <Select
-                    value={order.status}
-                    onValueChange={(value: Order['status']) => updateOrderStatus(order.id, value)}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="preparing">Preparing</SelectItem>
-                      <SelectItem value="ready">Ready</SelectItem>
-                      <SelectItem value="delivered">Delivered</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select
+                      value={order.status}
+                      onValueChange={(value: Order['status']) => updateOrderStatus(order.id, value)}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="preparing">Preparing</SelectItem>
+                        <SelectItem value="ready">Ready</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteOrder(order.id)}
+                    >
+                      Bill Paid
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

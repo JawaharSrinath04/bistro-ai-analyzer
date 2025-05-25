@@ -11,6 +11,7 @@ interface DataContextType {
   deleteMenuItem: (id: string) => void;
   addOrder: (order: Omit<Order, 'id' | 'createdAt'>) => void;
   updateOrderStatus: (id: string, status: Order['status']) => void;
+  deleteOrder: (id: string) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -73,6 +74,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ));
   };
 
+  const deleteOrder = (id: string) => {
+    setOrders(prev => prev.filter(order => order.id !== id));
+  };
+
   return (
     <DataContext.Provider value={{
       menuItems,
@@ -81,7 +86,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updateMenuItem,
       deleteMenuItem,
       addOrder,
-      updateOrderStatus
+      updateOrderStatus,
+      deleteOrder
     }}>
       {children}
     </DataContext.Provider>

@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { OrderItem } from '@/types/order';
@@ -14,13 +12,7 @@ const OrderTaking = () => {
   const { menuItems, addOrder } = useData();
   const { user } = useAuth();
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [customerInfo, setCustomerInfo] = useState({
-    name: '',
-    phone: '',
-    orderType: 'dine-in' as 'dine-in' | 'takeaway' | 'delivery',
-    tableNumber: '',
-    notes: ''
-  });
+  const [tableNumber, setTableNumber] = useState('');
 
   const availableItems = menuItems.filter(item => item.available);
   const categories = [...new Set(availableItems.map(item => item.category))];
@@ -64,30 +56,24 @@ const OrderTaking = () => {
     return orderItems.reduce((sum, item) => sum + item.total, 0);
   };
 
-  const handleSubmitOrder = () => {
-    if (orderItems.length === 0 || !customerInfo.name) return;
+  const handlePlaceOrder = () => {
+    if (orderItems.length === 0 || !tableNumber) return;
 
     addOrder({
-      customerName: customerInfo.name,
-      customerPhone: customerInfo.phone,
+      customerName: `Table ${tableNumber}`,
+      customerPhone: '',
       items: orderItems,
       totalAmount: getTotalAmount(),
       status: 'pending',
-      orderType: customerInfo.orderType,
-      tableNumber: customerInfo.tableNumber,
-      notes: customerInfo.notes,
+      orderType: 'dine-in',
+      tableNumber: tableNumber,
+      notes: '',
       takenBy: user?.name || 'Staff'
     });
 
     // Reset form
     setOrderItems([]);
-    setCustomerInfo({
-      name: '',
-      phone: '',
-      orderType: 'dine-in',
-      tableNumber: '',
-      notes: ''
-    });
+    setTableNumber('');
 
     alert('Order placed successfully!');
   };
@@ -102,7 +88,7 @@ const OrderTaking = () => {
         <CardContent>
           {categories.map(category => (
             <div key={category} className="mb-6">
-              <h3 className="font-semibold text-lg mb-3 text-blue-600">{category}</h3>
+              <h3 className="font-semibold text-lg mb-3 text-blue-600 lowercase">{category}</h3>
               <div className="space-y-2">
                 {availableItems
                   .filter(item => item.category === category)
@@ -111,7 +97,7 @@ const OrderTaking = () => {
                       <div>
                         <h4 className="font-medium">{item.name}</h4>
                         <p className="text-sm text-slate-600">{item.description}</p>
-                        <p className="text-blue-600 font-semibold">${item.price.toFixed(2)}</p>
+                        <p className="text-blue-600 font-semibold">₹{item.price.toFixed(2)}</p>
                       </div>
                       <Button
                         size="sm"
@@ -141,65 +127,14 @@ const OrderTaking = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Customer Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="customerName">Customer Name *</Label>
-                <Input
-                  id="customerName"
-                  value={customerInfo.name}
-                  onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
-                  placeholder="Enter customer name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="customerPhone">Phone Number</Label>
-                <Input
-                  id="customerPhone"
-                  value={customerInfo.phone}
-                  onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
-                  placeholder="Enter phone number"
-                />
-              </div>
-              <div>
-                <Label htmlFor="orderType">Order Type</Label>
-                <Select 
-                  value={customerInfo.orderType} 
-                  onValueChange={(value: 'dine-in' | 'takeaway' | 'delivery') => 
-                    setCustomerInfo({ ...customerInfo, orderType: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dine-in">Dine In</SelectItem>
-                    <SelectItem value="takeaway">Takeaway</SelectItem>
-                    <SelectItem value="delivery">Delivery</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {customerInfo.orderType === 'dine-in' && (
-                <div>
-                  <Label htmlFor="tableNumber">Table Number</Label>
-                  <Input
-                    id="tableNumber"
-                    value={customerInfo.tableNumber}
-                    onChange={(e) => setCustomerInfo({ ...customerInfo, tableNumber: e.target.value })}
-                    placeholder="Enter table number"
-                  />
-                </div>
-              )}
-            </div>
-
+            {/* Table Number */}
             <div>
-              <Label htmlFor="notes">Special Notes</Label>
-              <Textarea
-                id="notes"
-                value={customerInfo.notes}
-                onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })}
-                placeholder="Any special instructions..."
-                rows={2}
+              <Label htmlFor="tableNumber">Table Number *</Label>
+              <Input
+                id="tableNumber"
+                value={tableNumber}
+                onChange={(e) => setTableNumber(e.target.value)}
+                placeholder="Enter table number"
               />
             </div>
 
@@ -214,7 +149,7 @@ const OrderTaking = () => {
                     <div key={item.menuItemId} className="flex items-center justify-between p-2 bg-slate-50 rounded">
                       <div>
                         <span className="font-medium">{item.menuItemName}</span>
-                        <span className="text-slate-600 ml-2">${item.price.toFixed(2)}</span>
+                        <span className="text-slate-600 ml-2">₹{item.price.toFixed(2)}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
@@ -232,7 +167,7 @@ const OrderTaking = () => {
                         >
                           +
                         </Button>
-                        <span className="ml-2 font-semibold">${item.total.toFixed(2)}</span>
+                        <span className="ml-2 font-semibold">₹{item.total.toFixed(2)}</span>
                       </div>
                     </div>
                   ))}
@@ -245,11 +180,11 @@ const OrderTaking = () => {
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-lg font-semibold">Total:</span>
-                  <span className="text-xl font-bold text-blue-600">${getTotalAmount().toFixed(2)}</span>
+                  <span className="text-xl font-bold text-blue-600">₹{getTotalAmount().toFixed(2)}</span>
                 </div>
                 <Button
-                  onClick={handleSubmitOrder}
-                  disabled={!customerInfo.name || orderItems.length === 0}
+                  onClick={handlePlaceOrder}
+                  disabled={!tableNumber || orderItems.length === 0}
                   className="w-full bg-blue-600 hover:bg-blue-700"
                 >
                   Place Order
