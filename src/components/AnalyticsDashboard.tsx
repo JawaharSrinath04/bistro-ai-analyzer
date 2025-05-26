@@ -18,10 +18,13 @@ const AnalyticsDashboard = () => {
         return orderDate.toDateString() === date.toDateString();
       });
       
+      // Only count paid orders for revenue
+      const paidOrders = dayOrders.filter(order => order.status === 'paid');
+      
       last7Days.push({
         date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         orders: dayOrders.length,
-        revenue: dayOrders.reduce((sum, order) => sum + order.totalAmount, 0)
+        revenue: paidOrders.reduce((sum, order) => sum + order.totalAmount, 0)
       });
     }
     return last7Days;
@@ -30,7 +33,10 @@ const AnalyticsDashboard = () => {
   const getTopSellingItems = () => {
     const itemCounts: { [key: string]: { count: number; revenue: number; name: string } } = {};
     
-    orders.forEach(order => {
+    // Only count items from paid orders
+    const paidOrders = orders.filter(order => order.status === 'paid');
+    
+    paidOrders.forEach(order => {
       order.items.forEach(item => {
         if (!itemCounts[item.menuItemId]) {
           itemCounts[item.menuItemId] = { count: 0, revenue: 0, name: item.menuItemName };
@@ -61,7 +67,8 @@ const AnalyticsDashboard = () => {
       preparing: '#3B82F6',
       ready: '#10B981',
       delivered: '#6B7280',
-      cancelled: '#EF4444'
+      cancelled: '#EF4444',
+      paid: '#059669'
     };
 
     return Object.entries(statusCounts).map(([status, count]) => ({
@@ -75,8 +82,11 @@ const AnalyticsDashboard = () => {
   const topItems = getTopSellingItems();
   const statusData = getOrderStatusDistribution();
 
-  const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
-  const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+  // Only count revenue from paid orders
+  const paidOrders = orders.filter(order => order.status === 'paid');
+  const totalRevenue = paidOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+  const totalPaidOrders = paidOrders.length;
+  const avgOrderValue = totalPaidOrders > 0 ? totalRevenue / totalPaidOrders : 0;
 
   return (
     <div className="space-y-6">
@@ -88,6 +98,7 @@ const AnalyticsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{orders.length}</div>
+            <p className="text-xs text-green-600">{totalPaidOrders} paid</p>
           </CardContent>
         </Card>
 
@@ -97,6 +108,7 @@ const AnalyticsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">₹{totalRevenue.toFixed(2)}</div>
+            <p className="text-xs text-slate-600">From paid orders only</p>
           </CardContent>
         </Card>
 
@@ -106,6 +118,7 @@ const AnalyticsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">₹{avgOrderValue.toFixed(2)}</div>
+            <p className="text-xs text-slate-600">Per paid order</p>
           </CardContent>
         </Card>
 
@@ -147,6 +160,15 @@ const AnalyticsDashboard = () => {
                   stroke="#3B82F6" 
                   strokeWidth={3}
                   dot={{ fill: '#3B82F6', strokeWidth: 2, r: 6 }}
+                  name="Total Orders"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#059669" 
+                  strokeWidth={3}
+                  dot={{ fill: '#059669', strokeWidth: 2, r: 6 }}
+                  name="Revenue (₹)"
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -156,7 +178,7 @@ const AnalyticsDashboard = () => {
         {/* Top Selling Items */}
         <Card className="border-blue-200">
           <CardHeader>
-            <CardTitle className="text-slate-800">Top Selling Items</CardTitle>
+            <CardTitle className="text-slate-800">Top Selling Items (Paid Orders)</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>

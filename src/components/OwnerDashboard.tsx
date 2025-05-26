@@ -8,6 +8,7 @@ import { useSupabaseData } from '@/contexts/SupabaseDataContext';
 import MenuManagement from './MenuManagement';
 import OrderManagement from './OrderManagement';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import DetailedReports from './DetailedReports';
 
 const OwnerDashboard = () => {
   const { user, logout } = useSupabaseAuth();
@@ -29,7 +30,9 @@ const OwnerDashboard = () => {
     return new Date(order.createdAt).toDateString() === today;
   });
 
-  const todaysRevenue = todaysOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+  // Only count revenue from paid orders
+  const paidOrdersToday = todaysOrders.filter(order => order.status === 'paid');
+  const todaysRevenue = paidOrdersToday.reduce((sum, order) => sum + order.totalAmount, 0);
   const pendingOrders = orders.filter(order => order.status === 'pending').length;
 
   return (
@@ -68,6 +71,7 @@ const OwnerDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">{todaysOrders.length}</div>
+              <p className="text-xs text-green-600">{paidOrdersToday.length} paid</p>
             </CardContent>
           </Card>
 
@@ -77,6 +81,7 @@ const OwnerDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">₹{todaysRevenue.toFixed(2)}</div>
+              <p className="text-xs text-slate-600">From paid orders</p>
             </CardContent>
           </Card>
 
@@ -120,14 +125,7 @@ const OwnerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="reports">
-            <Card className="border-blue-200">
-              <CardHeader>
-                <CardTitle className="text-slate-800">Detailed Reports</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-slate-600">Advanced reporting features will be available here.</p>
-              </CardContent>
-            </Card>
+            <DetailedReports />
           </TabsContent>
         </Tabs>
       </div>

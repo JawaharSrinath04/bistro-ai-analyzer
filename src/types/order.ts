@@ -13,7 +13,7 @@ export interface Order {
   customerPhone: string;
   items: OrderItem[];
   totalAmount: number;
-  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled' | 'paid';
   orderType: 'dine-in' | 'takeaway' | 'delivery';
   tableNumber?: string;
   notes?: string;

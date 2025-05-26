@@ -18,13 +18,14 @@ const OrderManagement = () => {
       case 'ready': return 'bg-green-100 text-green-800';
       case 'delivered': return 'bg-gray-100 text-gray-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'paid': return 'bg-green-100 text-green-800 font-bold';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const handleBillPaid = async (orderId: string) => {
-    if (window.confirm('Are you sure the bill has been paid and you want to remove this order?')) {
-      await deleteOrder(orderId);
+    if (window.confirm('Mark this order as paid? This will add it to completed revenue.')) {
+      await updateOrderStatus(orderId, 'paid');
     }
   };
 
@@ -32,8 +33,9 @@ const OrderManagement = () => {
     await updateOrderStatus(orderId, status);
   };
 
-  // Group orders by table number
-  const groupedOrders = orders.reduce((acc, order) => {
+  // Group orders by table number, excluding paid orders from the main view
+  const activeOrders = orders.filter(order => order.status !== 'paid');
+  const groupedOrders = activeOrders.reduce((acc, order) => {
     const tableKey = order.tableNumber || 'No Table';
     if (!acc[tableKey]) {
       acc[tableKey] = [];
@@ -56,19 +58,22 @@ const OrderManagement = () => {
     <Card className="border-blue-200">
       <CardHeader>
         <CardTitle className="text-slate-800">
-          Order Management - Table View
+          Order Management - Active Orders
           {isOwner && (
             <span className="text-sm font-normal text-slate-600 ml-2">
               (View Only - Status updates by staff)
             </span>
           )}
         </CardTitle>
+        <div className="text-sm text-slate-600">
+          Paid orders are moved to revenue tracking and hidden from this view
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
           {Object.keys(groupedOrders).length === 0 ? (
             <div className="text-center py-8 text-slate-500">
-              No orders yet.
+              No active orders. All orders have been completed or paid.
             </div>
           ) : (
             Object.entries(groupedOrders).map(([tableNumber, tableOrders]) => (
@@ -123,7 +128,7 @@ const OrderManagement = () => {
                                 className="bg-green-600 hover:bg-green-700 text-white"
                                 onClick={() => handleBillPaid(order.id)}
                               >
-                                Bill Paid
+                                Mark as Paid
                               </Button>
                             </div>
                           ) : (
@@ -149,7 +154,7 @@ const OrderManagement = () => {
                                 className="bg-green-600 hover:bg-green-700 text-white"
                                 onClick={() => handleBillPaid(order.id)}
                               >
-                                Bill Paid
+                                Mark as Paid
                               </Button>
                             </>
                           )}
