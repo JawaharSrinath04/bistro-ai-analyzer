@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useData } from '@/contexts/DataContext';
+import { useSupabaseData } from '@/contexts/SupabaseDataContext';
 import { MenuItem } from '@/types/menu';
 
 const MenuManagement = () => {
-  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem } = useData();
+  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem, loading } = useSupabaseData();
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [newItem, setNewItem] = useState({
     name: '',
@@ -22,17 +22,31 @@ const MenuManagement = () => {
 
   const categories = [...new Set(menuItems.map(item => item.category))];
 
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (newItem.name && newItem.category && newItem.price > 0) {
-      addMenuItem(newItem);
+      await addMenuItem(newItem);
       setNewItem({ name: '', category: '', price: 0, description: '', available: true });
       setIsAddingItem(false);
     }
   };
 
-  const toggleAvailability = (item: MenuItem) => {
-    updateMenuItem(item.id, { available: !item.available });
+  const toggleAvailability = async (item: MenuItem) => {
+    await updateMenuItem(item.id, { available: !item.available });
   };
+
+  const handleDeleteItem = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this menu item?')) {
+      await deleteMenuItem(id);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   // Show menu creation form if no menu items exist
   if (menuItems.length === 0) {
@@ -234,7 +248,7 @@ const MenuManagement = () => {
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() => deleteMenuItem(item.id)}
+                              onClick={() => handleDeleteItem(item.id)}
                             >
                               Delete
                             </Button>

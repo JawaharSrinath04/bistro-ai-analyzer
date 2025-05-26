@@ -3,15 +3,26 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { useAuth } from '@/contexts/AuthContext';
-import { useData } from '@/contexts/DataContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { useSupabaseData } from '@/contexts/SupabaseDataContext';
 import MenuManagement from './MenuManagement';
 import OrderManagement from './OrderManagement';
 import AnalyticsDashboard from './AnalyticsDashboard';
 
 const OwnerDashboard = () => {
-  const { user, logout } = useAuth();
-  const { orders, menuItems } = useData();
+  const { user, logout } = useSupabaseAuth();
+  const { orders, menuItems, loading } = useSupabaseData();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-slate-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const todaysOrders = orders.filter(order => {
     const today = new Date().toDateString();
@@ -65,7 +76,7 @@ const OwnerDashboard = () => {
               <CardTitle className="text-sm font-medium text-slate-600">Today's Revenue</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">${todaysRevenue.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-blue-600">₹{todaysRevenue.toFixed(2)}</div>
             </CardContent>
           </Card>
 

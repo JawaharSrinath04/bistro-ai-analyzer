@@ -3,13 +3,13 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useData } from '@/contexts/DataContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseData } from '@/contexts/SupabaseDataContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Order } from '@/types/order';
 
 const OrderManagement = () => {
-  const { orders, updateOrderStatus, deleteOrder } = useData();
-  const { user } = useAuth();
+  const { orders, updateOrderStatus, deleteOrder, loading } = useSupabaseData();
+  const { user } = useSupabaseAuth();
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
@@ -22,10 +22,14 @@ const OrderManagement = () => {
     }
   };
 
-  const handleBillPaid = (orderId: string) => {
+  const handleBillPaid = async (orderId: string) => {
     if (window.confirm('Are you sure the bill has been paid and you want to remove this order?')) {
-      deleteOrder(orderId);
+      await deleteOrder(orderId);
     }
+  };
+
+  const handleStatusChange = async (orderId: string, status: Order['status']) => {
+    await updateOrderStatus(orderId, status);
   };
 
   // Group orders by table number
@@ -39,6 +43,14 @@ const OrderManagement = () => {
   }, {} as Record<string, Order[]>);
 
   const isOwner = user?.role === 'owner';
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <Card className="border-blue-200">
@@ -119,7 +131,7 @@ const OrderManagement = () => {
                             <>
                               <Select
                                 value={order.status}
-                                onValueChange={(value: Order['status']) => updateOrderStatus(order.id, value)}
+                                onValueChange={(value: Order['status']) => handleStatusChange(order.id, value)}
                               >
                                 <SelectTrigger className="w-32">
                                   <SelectValue />

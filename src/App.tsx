@@ -4,8 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { DataProvider } from "@/contexts/DataContext";
+import { SupabaseAuthProvider, useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
+import { SupabaseDataProvider } from "@/contexts/SupabaseDataContext";
 import LoginForm from "@/components/LoginForm";
 import OwnerDashboard from "@/components/OwnerDashboard";
 import StaffDashboard from "@/components/StaffDashboard";
@@ -13,7 +13,7 @@ import StaffDashboard from "@/components/StaffDashboard";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user } = useSupabaseAuth();
 
   if (!isAuthenticated) {
     return <LoginForm />;
@@ -31,13 +31,13 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <AuthProvider>
-        <DataProvider>
+      <SupabaseAuthProvider>
+        <SupabaseDataProvider>
           <BrowserRouter>
             <AppContent />
           </BrowserRouter>
-        </DataProvider>
-      </AuthProvider>
+        </SupabaseDataProvider>
+      </SupabaseAuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

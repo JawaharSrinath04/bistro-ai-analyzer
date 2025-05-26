@@ -4,13 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useData } from '@/contexts/DataContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseData } from '@/contexts/SupabaseDataContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { OrderItem } from '@/types/order';
 
 const OrderTaking = () => {
-  const { menuItems, addOrder } = useData();
-  const { user } = useAuth();
+  const { menuItems, addOrder, loading } = useSupabaseData();
+  const { user } = useSupabaseAuth();
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [tableNumber, setTableNumber] = useState('');
 
@@ -56,10 +56,10 @@ const OrderTaking = () => {
     return orderItems.reduce((sum, item) => sum + item.total, 0);
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (orderItems.length === 0 || !tableNumber) return;
 
-    addOrder({
+    await addOrder({
       customerName: `Table ${tableNumber}`,
       customerPhone: '',
       items: orderItems,
@@ -74,9 +74,15 @@ const OrderTaking = () => {
     // Reset form
     setOrderItems([]);
     setTableNumber('');
-
-    alert('Order placed successfully!');
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -88,7 +94,7 @@ const OrderTaking = () => {
         <CardContent>
           {categories.map(category => (
             <div key={category} className="mb-6">
-              <h3 className="font-semibold text-lg mb-3 text-blue-600 lowercase">{category}</h3>
+              <h3 className="font-semibold text-lg mb-3 text-blue-600 capitalize">{category}</h3>
               <div className="space-y-2">
                 {availableItems
                   .filter(item => item.category === category)
