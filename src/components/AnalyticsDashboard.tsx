@@ -2,10 +2,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-import { useData } from '@/contexts/DataContext';
+import { useSupabaseData } from '@/contexts/SupabaseDataContext';
 
 const AnalyticsDashboard = () => {
-  const { orders, menuItems } = useData();
+  const { orders, menuItems } = useSupabaseData();
 
   // Calculate analytics data
   const getOrdersByDay = () => {
@@ -96,7 +96,7 @@ const AnalyticsDashboard = () => {
             <CardTitle className="text-sm font-medium text-slate-600">Total Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">${totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-blue-600">₹{totalRevenue.toFixed(2)}</div>
           </CardContent>
         </Card>
 
@@ -105,7 +105,7 @@ const AnalyticsDashboard = () => {
             <CardTitle className="text-sm font-medium text-slate-600">Average Order Value</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">${avgOrderValue.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-blue-600">₹{avgOrderValue.toFixed(2)}</div>
           </CardContent>
         </Card>
 
