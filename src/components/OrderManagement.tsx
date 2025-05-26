@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Order } from '@/types/order';
 
 const OrderManagement = () => {
   const { orders, updateOrderStatus, deleteOrder } = useData();
+  const { user } = useAuth();
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
@@ -36,10 +38,19 @@ const OrderManagement = () => {
     return acc;
   }, {} as Record<string, Order[]>);
 
+  const isOwner = user?.role === 'owner';
+
   return (
     <Card className="border-blue-200">
       <CardHeader>
-        <CardTitle className="text-slate-800">Order Management - Table View</CardTitle>
+        <CardTitle className="text-slate-800">
+          Order Management - Table View
+          {isOwner && (
+            <span className="text-sm font-normal text-slate-600 ml-2">
+              (View Only - Status updates by staff)
+            </span>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
@@ -88,28 +99,48 @@ const OrderManagement = () => {
                           Total: ₹{order.totalAmount.toFixed(2)}
                         </div>
                         <div className="flex gap-2">
-                          <Select
-                            value={order.status}
-                            onValueChange={(value: Order['status']) => updateOrderStatus(order.id, value)}
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pending">Pending</SelectItem>
-                              <SelectItem value="preparing">Preparing</SelectItem>
-                              <SelectItem value="ready">Ready</SelectItem>
-                              <SelectItem value="delivered">Delivered</SelectItem>
-                              <SelectItem value="cancelled">Cancelled</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                            onClick={() => handleBillPaid(order.id)}
-                          >
-                            Bill Paid
-                          </Button>
+                          {isOwner ? (
+                            // Owner view - read only status
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-600">Status:</span>
+                              <span className={`px-3 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
+                                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                              </span>
+                              <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                                onClick={() => handleBillPaid(order.id)}
+                              >
+                                Bill Paid
+                              </Button>
+                            </div>
+                          ) : (
+                            // Staff view - editable status
+                            <>
+                              <Select
+                                value={order.status}
+                                onValueChange={(value: Order['status']) => updateOrderStatus(order.id, value)}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="preparing">Preparing</SelectItem>
+                                  <SelectItem value="ready">Ready</SelectItem>
+                                  <SelectItem value="delivered">Delivered</SelectItem>
+                                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                                onClick={() => handleBillPaid(order.id)}
+                              >
+                                Bill Paid
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
