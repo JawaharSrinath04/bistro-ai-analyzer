@@ -6,10 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSupabaseData } from '@/contexts/SupabaseDataContext';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Order } from '@/types/order';
+import { useToast } from '@/hooks/use-toast';
 
 const OrderManagement = () => {
   const { orders, updateOrderStatus, deleteOrder, loading } = useSupabaseData();
   const { user } = useSupabaseAuth();
+  const { toast } = useToast();
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
@@ -25,12 +27,36 @@ const OrderManagement = () => {
 
   const handleBillPaid = async (orderId: string) => {
     if (window.confirm('Mark this order as paid? This will add it to completed revenue.')) {
-      await updateOrderStatus(orderId, 'paid');
+      try {
+        console.log('Marking order as paid:', orderId);
+        await updateOrderStatus(orderId, 'paid');
+        toast({
+          title: "Success",
+          description: "Order marked as paid and added to revenue"
+        });
+      } catch (error) {
+        console.error('Error marking order as paid:', error);
+        toast({
+          title: "Error", 
+          description: "Failed to mark order as paid. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
   const handleStatusChange = async (orderId: string, status: Order['status']) => {
-    await updateOrderStatus(orderId, status);
+    try {
+      console.log('Changing order status:', { orderId, status });
+      await updateOrderStatus(orderId, status);
+    } catch (error) {
+      console.error('Error changing order status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update order status. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Group orders by table number, excluding paid orders from the main view
@@ -127,6 +153,7 @@ const OrderManagement = () => {
                                 size="sm"
                                 className="bg-green-600 hover:bg-green-700 text-white"
                                 onClick={() => handleBillPaid(order.id)}
+                                disabled={order.status === 'paid'}
                               >
                                 Mark as Paid
                               </Button>
@@ -153,6 +180,7 @@ const OrderManagement = () => {
                                 size="sm"
                                 className="bg-green-600 hover:bg-green-700 text-white"
                                 onClick={() => handleBillPaid(order.id)}
+                                disabled={order.status === 'paid'}
                               >
                                 Mark as Paid
                               </Button>

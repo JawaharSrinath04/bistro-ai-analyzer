@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MenuItem } from '@/types/menu';
@@ -276,16 +275,24 @@ export const SupabaseDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const updateOrderStatus = async (id: string, status: Order['status']) => {
     try {
-      const { error } = await supabase
+      console.log('Updating order status:', { id, status });
+      
+      const { data, error } = await supabase
         .from('orders')
         .update({ status })
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Update successful:', data);
 
       toast({
         title: "Success",
-        description: "Order status updated successfully"
+        description: status === 'paid' ? "Order marked as paid successfully" : "Order status updated successfully"
       });
 
       await fetchOrders();
@@ -293,9 +300,10 @@ export const SupabaseDataProvider: React.FC<{ children: React.ReactNode }> = ({ 
       console.error('Error updating order status:', error);
       toast({
         title: "Error",
-        description: "Failed to update order status",
+        description: `Failed to update order status: ${error.message || 'Unknown error'}`,
         variant: "destructive"
       });
+      throw error;
     }
   };
 
