@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +8,7 @@ import MenuManagement from './MenuManagement';
 import OrderManagement from './OrderManagement';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import DetailedReports from './DetailedReports';
+import RestaurantChatbot from './RestaurantChatbot';
 
 const OwnerDashboard = () => {
   const { user, logout } = useSupabaseAuth();
@@ -105,11 +105,12 @@ const OwnerDashboard = () => {
         </div>
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white border border-blue-200">
+          <TabsList className="grid w-full grid-cols-5 bg-white border border-blue-200">
             <TabsTrigger value="analytics" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Analytics</TabsTrigger>
             <TabsTrigger value="menu" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Menu Management</TabsTrigger>
             <TabsTrigger value="orders" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Order Status</TabsTrigger>
             <TabsTrigger value="reports" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Reports</TabsTrigger>
+            <TabsTrigger value="ai-chat" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">AI Assistant</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics">
@@ -126,6 +127,10 @@ const OwnerDashboard = () => {
 
           <TabsContent value="reports">
             <DetailedReports />
+          </TabsContent>
+
+          <TabsContent value="ai-chat">
+            <RestaurantChatbot />
           </TabsContent>
         </Tabs>
       </div>
